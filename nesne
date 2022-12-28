@@ -1,0 +1,214 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+using System.Data.OleDb; //Veritabanı bağlantı kütüphanesi
+namespace otel
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+        //Veri Tabanı Değişkenlerini Tanımlama Bölümü
+        OleDbConnection baglanti = new OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=otel.accdb");
+        OleDbCommand komut = new OleDbCommand();
+        OleDbDataAdapter adaptor = new OleDbDataAdapter();
+        DataSet tasima = new DataSet();
+        string resimo;
+        //DataGridWiev de kayıtları listeleme bölümü
+        void listele()
+        {
+            baglanti.Open();
+            OleDbDataAdapter adaptor = new OleDbDataAdapter("Select * from otel", baglanti);
+            adaptor.Fill(tasima, "otel");
+            dataGridView1.DataSource = tasima.Tables["otel"];
+            adaptor.Dispose();
+            baglanti.Close();
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            listele();
+        }
+        //Resim ekleme butonu
+        private void button4_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                pictureBox1.ImageLocation = openFileDialog1.FileName;
+                m_resim.Text = openFileDialog1.FileName;
+            }
+            // "\" karakterinin ascii kodunu alma bölümü
+            int s = 92;
+            string harf = ((char)s).ToString();
+            // Resmin adresinin tersten yazdırama bölümü
+            string yazi = m_resim.Text; string metin = "";
+            int yaziuzunlugu = yazi.Length;
+            for (int i = yaziuzunlugu; i > 0; i--)
+            {
+                if (yazi.Substring(i - 1, 1) == harf)
+                {
+                    break;
+                }
+                metin = metin + (yazi.Substring(i - 1, 1));
+            }
+            // Bulunan resim adını düzden yazdırma bölümü
+            int uzunluk = metin.Length; string kelime = "";
+            for (int a = uzunluk; a > 0; a--)
+            {
+                kelime = kelime + (metin.Substring(a - 1, 1));
+            }
+            //resim adını oresim kutusuna yazdırma bölümü
+            { 
+             m_resim.Text = "Resim/" + kelime;
+             resimo = m_resim.Text;
+             }
+        }
+        //Kayıt Ekleme Butonu
+        private void button2_Click(object sender, EventArgs e)
+        {
+            m_resim.Text = pictureBox1.ImageLocation;
+            if (m_tc.Text != "" && m_adi.Text != "" && m_soyadi.Text != "" && m_telefonu.Text != "" && m_mail.Text != "" && m_giris_tarihi.Text != "" && m_cikis_tarihi.Text != "" && m_oda_no.Text != "" && m_oda_ozellik.Text != "" && m_tutar.Text != "" && m_resim.Text != "")
+            {
+                komut.Connection = baglanti;
+                komut.CommandText = "Insert Into otel(m_tc,m_adi,m_Soyadi,m_telefonu,m_mail,m_adresi,m_giris_tarihi,m_cikis_tarihi ,m_oda_no,m_oda_ozellik,m_tutar,m_resim) Values ('" + m_tc.Text + "','" + m_adi.Text + "','" + m_soyadi.Text + "','" + m_telefonu.Text + "','" + m_mail.Text + "','" + m_adresi.Text + "','" + m_giris_tarihi.Text + "','" + m_cikis_tarihi.Text + "','" + m_oda_no.Text + "','" + m_oda_ozellik.Text + "','" + m_tutar.Text + "','" + resimo + "')";
+           
+             baglanti.Open();
+             komut.ExecuteNonQuery();
+             komut.Dispose();
+             baglanti.Close();
+             MessageBox.Show("Kayıt Tamamlandı!");
+             tasima.Clear();
+             listele();
+             }
+             else
+             {
+             MessageBox.Show("Boş alan geçmeyiniz!");
+             }
+        }
+        //yeni kayıt ekleme
+        private void button1_Click(object sender, EventArgs e)
+        {
+            m_id.Text = "";
+            m_tc.Text = "";
+            m_adi.Text = "";
+            m_soyadi.Text = "";
+            m_telefonu.Text = "";
+            m_mail.Text = "";
+            m_adresi.Text = "";
+            m_giris_tarihi.Text = "";
+            m_cikis_tarihi.Text = "";
+            m_oda_no.Text = "";
+            m_oda_ozellik.Text = "";
+            m_tutar.Text = "";
+            m_resim.Text = "";
+            pictureBox1.ImageLocation = "";
+        }
+        //Kayıt Silme Bölümü
+        private void button6_Click(object sender, EventArgs e)
+        {
+            DialogResult c;
+            c = MessageBox.Show("Silmek istediğinizden emin misiniz?", "Uyarı!", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (c == DialogResult.Yes)
+            {
+                baglanti.Open();
+                komut.Connection = baglanti;
+                komut.CommandText = "Delete from otel where m_id=" + textBox15.Text + "";
+                komut.ExecuteNonQuery();
+                komut.Dispose();
+                baglanti.Close();
+                tasima.Clear();
+                listele();
+            }
+        }
+        //DataGridView üzerinde tıklanan kaydın ekranda gösterilmesi
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            m_id.Text = dataGridView1.CurrentRow.Cells[0].Value.ToString();
+            m_tc.Text = dataGridView1.CurrentRow.Cells[1].Value.ToString();
+            m_adi.Text = dataGridView1.CurrentRow.Cells[2].Value.ToString();
+            m_soyadi.Text = dataGridView1.CurrentRow.Cells[3].Value.ToString();
+            m_telefonu.Text = dataGridView1.CurrentRow.Cells[4].Value.ToString();
+            m_mail.Text = dataGridView1.CurrentRow.Cells[5].Value.ToString();
+            m_adresi.Text = dataGridView1.CurrentRow.Cells[6].Value.ToString();
+            m_giris_tarihi.Text = dataGridView1.CurrentRow.Cells[7].Value.ToString();
+            m_cikis_tarihi.Text = dataGridView1.CurrentRow.Cells[8].Value.ToString();
+            m_oda_no.Text = dataGridView1.CurrentRow.Cells[9].Value.ToString();
+            m_oda_ozellik.Text = dataGridView1.CurrentRow.Cells[10].Value.ToString();
+            m_tutar.Text = dataGridView1.CurrentRow.Cells[11].Value.ToString();
+            pictureBox1.ImageLocation = dataGridView1.CurrentRow.Cells[12].Value.ToString();
+            m_resim.Text = dataGridView1.CurrentRow.Cells[12].Value.ToString();
+        }
+        //Kayıt Arama Bölümü
+        private void button5_Click(object sender, EventArgs e)
+        {
+            baglanti = new OleDbConnection("Provider=Microsoft.ACE.Oledb.12.0;Data Source=otel.accdb");
+            adaptor = new OleDbDataAdapter("SElect * from otel where m_id like '%" + textBox14.Text + "%'", baglanti);
+            tasima = new DataSet();
+            baglanti.Open();
+            adaptor.Fill(tasima, "otel");
+            dataGridView1.DataSource = tasima.Tables["otel"];
+            baglanti.Close();
+            //Bulunan kayıt textboxlara atanarak gösteriliyor.
+            m_id.Text = dataGridView1.CurrentRow.Cells[0].Value.ToString();
+            m_tc.Text = dataGridView1.CurrentRow.Cells[1].Value.ToString();
+            m_adi.Text = dataGridView1.CurrentRow.Cells[2].Value.ToString();
+            m_soyadi.Text = dataGridView1.CurrentRow.Cells[3].Value.ToString();
+            m_telefonu.Text = dataGridView1.CurrentRow.Cells[4].Value.ToString();
+            m_mail.Text = dataGridView1.CurrentRow.Cells[5].Value.ToString();
+            m_adresi.Text = dataGridView1.CurrentRow.Cells[6].Value.ToString();
+            m_giris_tarihi.Text = dataGridView1.CurrentRow.Cells[7].Value.ToString();
+            m_cikis_tarihi.Text = dataGridView1.CurrentRow.Cells[8].Value.ToString();
+            m_oda_no.Text = dataGridView1.CurrentRow.Cells[9].Value.ToString();
+            m_oda_ozellik.Text = dataGridView1.CurrentRow.Cells[10].Value.ToString();
+            m_tutar.Text = dataGridView1.CurrentRow.Cells[11].Value.ToString();
+            pictureBox1.ImageLocation = dataGridView1.CurrentRow.Cells[12].Value.ToString();
+            m_resim.Text = dataGridView1.CurrentRow.Cells[12].Value.ToString();
+        }
+        //Öğrenci numarasına göre arama
+        private void button7_Click(object sender, EventArgs e)
+        {
+            OleDbConnection con = new OleDbConnection("Provider=Microsoft.ACE.Oledb.12.0;Data Source=otel.accdb"); con.Open();
+            OleDbCommand cmd = new OleDbCommand("Select * from otel where m_tc like '%" + textBox1.Text + "%'", con);
+            OleDbDataReader dr = cmd.ExecuteReader();
+            while (dr.Read())
+            {
+                m_id.Text = dr["m_id"].ToString();
+                m_tc.Text = dr["m_tc"].ToString();
+                m_adi.Text = dr["m_adi"].ToString();
+                m_soyadi.Text = dr["m_soyadi"].ToString();
+                m_telefonu.Text = dr["m_telefonu"].ToString();
+                m_mail.Text = dr["m_mail"].ToString();
+                m_adresi.Text = dr["m_adresi"].ToString();
+                m_giris_tarihi.Text = dr["m_giris_tarihi"].ToString();
+                m_cikis_tarihi.Text = dr["m_cikis_tarihi"].ToString();
+                m_oda_no.Text = dr["m_oda_no"].ToString();
+                m_oda_ozellik.Text = dr["m_oda_ozellik"].ToString();
+                m_tutar.Text = dr["m_tutar"].ToString();
+                pictureBox1.ImageLocation = dr["m_resim"].ToString();
+                m_resim.Text = dr["m_resim"].ToString();
+            }
+            con.Close();
+        }
+        // Kayıt güncelleme bölümü
+        private void button3_Click(object sender, EventArgs e)
+        {
+            komut = new OleDbCommand();
+            baglanti.Open();
+            komut.Connection = baglanti;
+            komut.CommandText = "update otel set m_tc='" + m_tc.Text + "',m_adi='" + m_adi.Text + "', m_soyadi='" + m_soyadi.Text + "',m_telefonu='" + m_telefonu.Text + "',m_mail='" + m_mail.Text + "',m_adresi='" + m_adresi.Text + "', m_giris_tarihi='" + m_giris_tarihi.Text + "', m_cikis_tarihi='" + m_cikis_tarihi.Text + "', m_oda_no='" + m_oda_no.Text + "', m_oda_ozellik='" + m_oda_ozellik.Text + "', m_tutar='" + m_tutar.Text + "', m_resim='" + m_resim.Text + "' where m_id=" + m_id.Text + "";
+            komut.ExecuteNonQuery();
+            baglanti.Close();
+            tasima.Clear();
+            listele();
+        }
+        private void label5_Click(object sender, EventArgs e)
+        {
+        }
+    }
+}
